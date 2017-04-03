@@ -1,0 +1,16 @@
+body {
+  background-color: #edcabb;
+  font-family: Sans-serif;
+  font-size: 18px;
+}
+.error_style {
+  color: red;
+  font-size: .75em;
+}
+.center {
+  margin: 0;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

@@ -14,45 +14,171 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#  *** Created by C-Nug for LC101 ***
+#
 import webapp2
+import re
+import cgi
+
+
+head = """
+    <!DOCTYPE HTML>
+    <html>
+    <head>
+        <title>User Signup</title>
+        <style>
+            body {
+              background-color: #edcabb;
+              font-family: Sans-serif;
+              font-size: 18px;
+            }
+            .error_style {
+              color: red;
+              font-size: .75em;
+            }
+            .center {
+              margin: 0;
+              position: absolute;
+              top: 40%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            }
+        </style>
+    </head>
+
+    <body>
+"""
+
+foot = """
+    </body>
+    </html>
+"""
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        html = """
-        <html>
-        <header>
-            <title>User Signup</title>
-        </head>
+        error_message = self.request.get("error")
+        username = self.request.get("username")
+        username_error = ""
+        password_error = ""
+        verifypassword_error = ""
+        email_error = ""
 
-        <body>
-            <h2>Sign up</h2>
-            <form method="post">
-                <div>
-                    <label>Username</label>
-                    <input type="text" name="username">
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="text" name="password">
-                </div>
-                <div>
-                    <label>Verify Password</label>
-                    <input type="text" name="passwordverify">
-                </div>
-                <div>
-                    <label>Email (optional)</label>
-                    <input type="text" name="email">
-                </div>
-                <div>
-                    <input type="submit">
-                </div>
+        # Converts codes to messages
+        if "e812" in error_message:
+            username_error = "You forgot to enter a name ya dummy!"
+        elif "e813" in error_message:
+            username_error = "Invalid username"
+        if "e814" in error_message:
+            password_error = "Password must be 6 to 20 characters long"
+        if "e815" in error_message:
+            verifypassword_error = "Passwords do not match"
+        if "e816" in error_message:
+            email_error = "Invalid email"
+
+        #TODO: make forms remember input upon refresh
+        # HTML for user form
+        form = """
+            <form action="newuser" method="post">
+                <table class="center">
+                    <tr>
+                        <td>
+                            <h2>Sign up</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Username</label>
+                        </td>
+                        <td>
+                            <input type="text" name="username" value="{4}">
+                        </td>
+                        <td class="error_style">
+                            {0}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Password</label>
+                        </td>
+                        <td>
+                            <input type="password" name="password">
+                        </td>
+                        <td class="error_style">
+                            {1}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Verify Password</label>
+                        </td>
+                        <td>
+                        <input type="password" name="passwordverify">
+                        </td>
+                        <td class="error_style">
+                            {2}
+                        </td>
+                    </tr>
+                        <td>
+                            <label>Email (optional)</label>
+                        </td>
+                        <td>
+                            <input type="text" name="email">
+                        </td>
+                        <td class="error_style">
+                            {3}
+                        </td>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                            <input type="submit">
+                        </td>
+                    </tr>
+                </table>
             </form>
-        </body>
-        </html>
-        """
+        """.format(username_error, password_error,
+                    verifypassword_error, email_error,
+                    username)
 
-        self.response.write(html)
+
+        self.response.write(head + form + foot)
+
+class UserAddedHandler(webapp2.RequestHandler):
+    def post(self):
+        username = self.request.get("username")
+        password = self.request.get("password")
+        passwordverify = self.request.get("passwordverify")
+        email = self.request.get("email")
+
+        welcome = """
+            <h2 class="center">Welcome to The Rock, {0}!</h2>
+        """.format(username)
+
+        # Valid form expressions
+        user_re = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+        password_re = re.compile(r"^.{6,20}$")
+        email_re = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
+
+        # Handles all error messages with e### codes
+        error_code = ""
+        if username == "":
+            error_code += "e812"
+        if not user_re.match(username):
+            error_code += "e813"
+        if not password_re.match(password):
+            error_code += "e814"
+        if password != passwordverify:
+            error_code += "e815"
+        if not email_re.match(email) and email != "":
+            error_code += "e816"
+
+        if error_code != "":
+            self.redirect("/?error=" + error_code)
+        else:
+            self.response.write(head + welcome + foot)
+
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
-], debug=True)
+    ('/', MainHandler),
+    ('/newuser', UserAddedHandler)],
+    debug=True)
