@@ -90,7 +90,7 @@ class MainHandler(webapp2.RequestHandler):
                             <label>Username</label>
                         </td>
                         <td>
-                            <input type="text" name="username" value="{4}">
+                            <input type="text" name="username">
                         </td>
                         <td class="error_style">
                             {0}
@@ -137,8 +137,7 @@ class MainHandler(webapp2.RequestHandler):
                 </table>
             </form>
         """.format(username_error, password_error,
-                    verifypassword_error, email_error,
-                    username)
+                    verifypassword_error, email_error)
 
 
         self.response.write(head + form + foot)
